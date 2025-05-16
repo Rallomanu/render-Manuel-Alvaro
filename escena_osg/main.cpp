@@ -14,6 +14,8 @@
 #include <osg/Material>
 #include <osg/PrimitiveSet>
 #include <osg/Camera>
+#include <osgUtil/SmoothingVisitor>
+
 
 class CameraSwitcher : public osgGA::GUIEventHandler {
 public:
@@ -94,32 +96,42 @@ osg::ref_ptr<osg::Group> createScene() {
     sphere->getOrCreateStateSet()->setAttributeAndModes(createMaterial(osg::Vec4(1, 0, 0, 1)), osg::StateAttribute::ON);
     root->addChild(sphere);
 
-    // Pirámide verde
+    // Pirámide de base cuadrada verde
     osg::ref_ptr<osg::Geode> pyramid = new osg::Geode();
     osg::ref_ptr<osg::Geometry> geometry = new osg::Geometry();
     osg::ref_ptr<osg::Vec3Array> vertices = new osg::Vec3Array();
 
-    vertices->push_back(osg::Vec3(1, 1, 0));
-    vertices->push_back(osg::Vec3(-1, 1, 0));
-    vertices->push_back(osg::Vec3(0, -1, 0));
-    vertices->push_back(osg::Vec3(0, 0, 2));
+    vertices->push_back(osg::Vec3(-1, -1, 0)); 
+    vertices->push_back(osg::Vec3( 1, -1, 0)); 
+    vertices->push_back(osg::Vec3( 1,  1, 0)); 
+    vertices->push_back(osg::Vec3(-1,  1, 0)); 
+    vertices->push_back(osg::Vec3( 0,  0, 2)); 
+
     geometry->setVertexArray(vertices);
 
+    // Triángulos: caras laterales 
     osg::ref_ptr<osg::DrawElementsUInt> indices = new osg::DrawElementsUInt(GL_TRIANGLES);
-    indices->push_back(0); indices->push_back(1); indices->push_back(3);
-    indices->push_back(1); indices->push_back(2); indices->push_back(3);
-    indices->push_back(2); indices->push_back(0); indices->push_back(3);
-    indices->push_back(0); indices->push_back(2); indices->push_back(1);
+    indices->push_back(0); indices->push_back(1); indices->push_back(4);
+    indices->push_back(1); indices->push_back(2); indices->push_back(4);
+    indices->push_back(2); indices->push_back(3); indices->push_back(4);
+    indices->push_back(3); indices->push_back(0); indices->push_back(4);
+
+    // Base 
+    indices->push_back(0); indices->push_back(1); indices->push_back(2);
+    indices->push_back(0); indices->push_back(2); indices->push_back(3);
 
     geometry->addPrimitiveSet(indices);
+
+    osgUtil::SmoothingVisitor::smooth(*geometry);
 
     pyramid->addDrawable(geometry);
     pyramid->getOrCreateStateSet()->setAttributeAndModes(createMaterial(osg::Vec4(0, 1, 0, 1)), osg::StateAttribute::ON);
 
     osg::ref_ptr<osg::MatrixTransform> transform = new osg::MatrixTransform();
-    transform->setMatrix(osg::Matrix::translate(3, 0, -0.8));
+    transform->setMatrix(osg::Matrix::translate(3, 0, -1.0)); 
     transform->addChild(pyramid);
     root->addChild(transform);
+
 
     return root;
 }
